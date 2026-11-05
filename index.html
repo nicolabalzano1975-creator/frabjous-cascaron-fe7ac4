@@ -1,0 +1,342 @@
+<title>Tavola di Stagione</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: testata colorata, pannello controlli (persone, tipo di piatti, obiettivo kcal), avviso calorie, 7 giorni a tinte diverse, lista della spesa per reparto. */
+:root{
+  --bg:#FFFBF5; --fg:#2A1F1A; --muted:#6F5F56; --line:#E7DACB; --panel:#FFFFFF;
+  --accent:#D9402A; --accent-fg:#FFFFFF; --accent-soft:#FFE3DB;
+  --t1:#FFD9CF; --t2:#FFE0B3; --t3:#FFF0A8; --t4:#D5EBC8; --t5:#E8D3F0; --t6:#CFE6F5; --t7:#FFD3E4;
+  --f-display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --f-body:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1B1512; --fg:#F6EDE6; --muted:#BBA99D; --line:#3C302A; --panel:#251D19;
+    --accent:#FF7A5F; --accent-fg:#2A1208; --accent-soft:#4A2A22;
+    --t1:#5A2A22; --t2:#5A3B14; --t3:#544A12; --t4:#2C4A22; --t5:#4A2D58; --t6:#234559; --t7:#5A2440;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1B1512; --fg:#F6EDE6; --muted:#BBA99D; --line:#3C302A; --panel:#251D19;
+  --accent:#FF7A5F; --accent-fg:#2A1208; --accent-soft:#4A2A22;
+  --t1:#5A2A22; --t2:#5A3B14; --t3:#544A12; --t4:#2C4A22; --t5:#4A2D58; --t6:#234559; --t7:#5A2440;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.5 var(--f-body);
+  padding-block:24px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.1}
+h1{font-size:clamp(2rem,6vw,3.4rem);font-weight:800;letter-spacing:-.02em}
+h2{font-size:1.5rem;font-weight:800}
+.eyebrow{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+header{display:flex;flex-direction:column;gap:10px}
+header p{margin:0;max-width:62ch;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:4px 12px;border-radius:999px;font-size:.88rem;font-weight:500;color:var(--fg)}
+.controls{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+.field{display:flex;align-items:center;gap:10px;font-weight:500;flex-wrap:wrap}
+.stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.stepper button{width:38px;height:38px;border:0;background:transparent;color:var(--fg);font-size:1.2rem;cursor:pointer}
+.stepper output{min-width:34px;text-align:center;font-weight:700}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.seg button{border:0;background:transparent;color:var(--fg);padding:8px 14px;font-weight:500;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);font-weight:700}
+button{font:inherit}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.primary{background:var(--accent);color:var(--accent-fg);border:0;border-radius:999px;padding:10px 20px;font-weight:700;cursor:pointer}
+input[type=number],select{font:inherit;background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:6px 10px}
+input[type=number]{width:96px;font-variant-numeric:tabular-nums}
+.stats{color:var(--muted);font-size:.92rem;flex-basis:100%}
+.alert{background:var(--accent-soft);border-radius:14px;padding:12px 16px;font-size:.92rem;margin:0}
+.alert strong{font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.day{border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.day-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.day-name{font-family:var(--f-display);font-weight:800;font-size:1.15rem}
+.dish{font-family:var(--f-display);font-weight:800;font-size:1.3rem;line-height:1.15;text-wrap:balance}
+.meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:.88rem;font-weight:700}
+.pill{background:var(--panel);border-radius:999px;padding:2px 10px}
+.note{font-size:.92rem;margin:0}
+.small{font-size:.82rem;margin:0}
+.small.m{color:var(--muted)}
+.small b{font-weight:700}
+.actions{display:flex;flex-direction:column;gap:8px;align-items:flex-start;margin-top:auto}
+.actions select{max-width:100%;width:100%}
+.swap{background:transparent;color:var(--fg);border:1.5px solid currentColor;border-radius:999px;padding:5px 14px;font-weight:700;cursor:pointer}
+.meal{background:var(--panel);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.meal .pill{background:var(--bg)}
+.meal-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.meal-name{font-weight:700;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.day-total{font-size:.85rem;font-weight:700;margin:0}
+.dish{font-size:1.2rem}
+.list-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px}
+.secondary{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-weight:700;cursor:pointer}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.dept{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px 16px;min-width:0}
+.dept h3{font-size:1.05rem;margin-bottom:8px;display:flex;justify-content:space-between;gap:8px}
+.dept h3 span{color:var(--muted);font-size:.85rem;font-family:var(--f-body);font-weight:500}
+.dept ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.dept label{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--line);cursor:pointer}
+.dept li:first-child label{border-top:0}
+.dept input{width:18px;height:18px;accent-color:var(--accent);flex:none}
+.dept .q{margin-left:auto;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.dept .done .n{text-decoration:line-through;color:var(--muted)}
+.dept .done .q{color:var(--muted);font-weight:500}
+.foot{color:var(--muted);font-size:.88rem;margin:0}
+@media (prefers-reduced-motion:no-preference){.day{transition:transform .15s}.day:hover{transform:translateY(-2px)}}
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow" id="season"></span>
+    <h1>Cosa si mangia questa settimana?</h1>
+    <p>Dì quanto tempo hai per cucinare ogni giorno. L'app compone il menu con ingredienti di stagione e prepara la lista della spesa già divisa per reparto. A pranzo propone un primo, a cena un secondo o una zuppa.</p>
+    <div class="chips" id="seasonal" aria-label="Ingredienti di stagione"></div>
+  </header>
+
+  <div class="controls">
+    <div class="field">Persone
+      <div class="stepper">
+        <button type="button" id="minus" aria-label="Meno persone">−</button>
+        <output id="people" aria-live="polite">2</output>
+        <button type="button" id="plus" aria-label="Più persone">+</button>
+      </div>
+    </div>
+    <div class="field" role="group" aria-label="Tipo di piatti">Piatti
+      <div class="seg">
+        <button type="button" data-mode="all" aria-pressed="true">Tutti</button>
+        <button type="button" data-mode="light" aria-pressed="false">Leggeri</button>
+        <button type="button" data-mode="rich" aria-pressed="false">Sostanziosi</button>
+      </div>
+    </div>
+    <div class="field">
+      <label for="goal">Obiettivo giornaliero</label>
+      <input type="number" id="goal" min="1200" max="4000" step="50" placeholder="es. 2000" inputmode="numeric"> kcal
+    </div>
+    <div class="field" role="group" aria-label="Pasti da pianificare">Pasti
+      <div class="seg">
+        <button type="button" data-meals="both" aria-pressed="true">Pranzo e cena</button>
+        <button type="button" data-meals="dinner" aria-pressed="false">Solo cena</button>
+      </div>
+    </div>
+    <div class="field" id="field-p">
+      <label for="share-p">Il pranzo vale circa</label>
+      <select id="share-p"><option>25</option><option>30</option><option>35</option><option>40</option><option>45</option><option>50</option></select> %
+    </div>
+    <div class="field">
+      <label for="share-c">La cena vale circa</label>
+      <select id="share-c"><option>25</option><option>30</option><option>35</option><option>40</option><option>45</option><option>50</option></select> % della giornata
+    </div>
+    <button type="button" class="primary" id="regen">Rigenera la settimana</button>
+    <div class="stats" id="stats"></div>
+  </div>
+
+  <p class="alert"><strong>Come leggere le calorie.</strong> I valori indicati riguardano solo la ricetta del piatto principale. Contorni, pane, colazione, spuntini, dolci e bevande non sono calcolati. L'obiettivo giornaliero serve solo a orientare la scelta dei piatti e non è un consiglio nutrizionale.</p>
+
+  <section style="display:flex;flex-direction:column;gap:14px">
+    <h2>Il menu della settimana</h2>
+    <div class="grid" id="days"></div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:14px">
+    <div class="list-head">
+      <h2>Lista della spesa</h2>
+      <button type="button" class="secondary" id="copy">Copia la lista</button>
+    </div>
+    <div class="cols" id="shop"></div>
+    <p class="foot">Prototipo: per ora le ricette sono <span id="count"></span> piatti autunnali italiani. Quantità e calorie sono stime indicative per porzione, calcolate sul solo piatto principale.</p>
+  </section>
+</div>
+
+<script>
+const V="Frutta e verdura",C="Carne e pesce",L="Latticini e salumi",D="Pasta e dispensa";
+const R=[
+{id:"insalata",cat:"secondo",kcal:180,n:"Insalata di finocchi, arance e olive",min:10,note:"Finocchio affettato sottile, arance a spicchi, olive e un filo d'olio.",ing:[["Finocchi",.5,"pz",V],["Arance",.5,"pz",V],["Olive nere",20,"g",D],["Olio extravergine",1,"cucchiai",D]]},
+{id:"gnocchi",cat:"primo",kcal:510,n:"Gnocchi al gorgonzola e noci",min:20,note:"Sciogli il gorgonzola nel latte, tuffa gli gnocchi, finisci con le noci.",ing:[["Gnocchi di patate",150,"g",D],["Gorgonzola",50,"g",L],["Noci",15,"g",D],["Latte",30,"ml",L]]},
+{id:"cavolfiore",cat:"primo",kcal:460,n:"Pasta con cavolfiore e acciughe",min:20,note:"Il cavolfiore cuoce nella stessa acqua della pasta. Pangrattato tostato sopra.",ing:[["Pasta corta",90,"g",D],["Cavolfiore",150,"g",V],["Acciughe sott'olio",15,"g",C],["Aglio",.5,"spicchi",V],["Pangrattato",10,"g",D]]},
+{id:"radicchio",cat:"primo",kcal:555,n:"Pasta alle noci e radicchio",min:20,note:"Radicchio saltato in padella, noci tritate e parmigiano a pioggia.",ing:[["Pasta corta",90,"g",D],["Radicchio",100,"g",V],["Noci",20,"g",D],["Parmigiano",15,"g",L]]},
+{id:"cime",cat:"primo",kcal:435,n:"Orecchiette con cime di rapa",min:25,note:"Cime sbollentate, poi saltate con aglio, acciughe e peperoncino.",ing:[["Orecchiette",90,"g",D],["Cime di rapa",200,"g",V],["Acciughe sott'olio",10,"g",C],["Aglio",.5,"spicchi",V]]},
+{id:"frittata",cat:"secondo",kcal:345,n:"Frittata di porri e patate",min:25,note:"Porri e patate stufati in padella, poi le uova e il parmigiano.",ing:[["Uova",2,"pz",L],["Porri",.5,"pz",V],["Patate",100,"g",V],["Parmigiano",15,"g",L]]},
+{id:"speck",cat:"primo",kcal:565,n:"Pasta alla zucca e speck",min:30,note:"Zucca a dadini rosolata con cipolla, speck croccante alla fine.",ing:[["Pasta corta",90,"g",D],["Zucca",150,"g",V],["Speck",40,"g",L],["Cipolla",.25,"pz",V],["Parmigiano",15,"g",L]]},
+{id:"cremaceci",cat:"zuppa",kcal:400,n:"Crema di ceci con crostini",min:30,note:"Ceci frullati con rosmarino e aglio, crostini di pane tostato.",ing:[["Ceci cotti",150,"g",D],["Pane raffermo",40,"g",D],["Rosmarino",.5,"rametti",V],["Aglio",.5,"spicchi",V],["Olio extravergine",1,"cucchiai",D]]},
+{id:"tagliatelle",cat:"primo",kcal:480,n:"Tagliatelle ai funghi porcini",min:30,note:"Funghi trifolati con aglio e prezzemolo, tagliatelle fresche e una noce di burro.",ing:[["Tagliatelle all'uovo",90,"g",D],["Funghi porcini",150,"g",V],["Burro",10,"g",L],["Aglio",.5,"spicchi",V],["Prezzemolo",.5,"ciuffi",V]]},
+{id:"pizzoccheri",cat:"primo",kcal:745,n:"Pizzoccheri della Valtellina",min:35,note:"Verza e patate lessate con la pasta, strati di casera e burro alla salvia.",ing:[["Pizzoccheri",100,"g",D],["Verza",100,"g",V],["Patate",100,"g",V],["Formaggio Casera",50,"g",L],["Burro",15,"g",L],["Aglio",.5,"spicchi",V]]},
+{id:"vellutata",cat:"zuppa",kcal:290,n:"Vellutata di zucca e castagne",min:35,note:"Tutto in pentola con il brodo, poi frullato. Un filo di panna.",ing:[["Zucca",250,"g",V],["Castagne lessate",60,"g",D],["Cipolla",.5,"pz",V],["Brodo vegetale",250,"ml",D],["Panna",20,"ml",L]]},
+{id:"pastapatate",cat:"primo",kcal:560,n:"Pasta e patate con provola",min:35,note:"Patate e pasta cotte insieme in un po' di passata, provola che fila alla fine.",ing:[["Pasta mista",70,"g",D],["Patate",150,"g",V],["Provola affumicata",40,"g",L],["Cipolla",.25,"pz",V],["Sedano",.25,"pz",V],["Passata di pomodoro",30,"g",D]]},
+{id:"merluzzo",cat:"secondo",kcal:300,n:"Merluzzo al forno con cavolfiore",min:35,note:"Cavolfiore a cimette e filetti in teglia, limone e olive a fine cottura.",ing:[["Filetti di merluzzo",150,"g",C],["Cavolfiore",200,"g",V],["Olive nere",15,"g",D],["Limone",.25,"pz",V],["Olio extravergine",1,"cucchiai",D]]},
+{id:"pastaceci",cat:"zuppa",kcal:445,n:"Pasta e ceci al rosmarino",min:40,note:"Ceci in parte schiacciati, pasta mista cotta direttamente nel sugo.",ing:[["Pasta mista",70,"g",D],["Ceci cotti",120,"g",D],["Passata di pomodoro",50,"g",D],["Rosmarino",.5,"rametti",V],["Aglio",.5,"spicchi",V]]},
+{id:"risotto",cat:"primo",kcal:480,n:"Risotto alla zucca",min:40,note:"Zucca a pezzi che si sfanno nel riso, mantecatura con burro e parmigiano.",ing:[["Riso carnaroli",80,"g",D],["Zucca",150,"g",V],["Cipolla",.25,"pz",V],["Brodo vegetale",300,"ml",D],["Parmigiano",20,"g",L],["Burro",10,"g",L]]},
+{id:"risottofunghi",cat:"primo",kcal:470,n:"Risotto ai funghi porcini",min:40,note:"Porcini trifolati a parte e uniti a metà cottura, mantecatura con burro.",ing:[["Riso carnaroli",80,"g",D],["Funghi porcini",120,"g",V],["Cipolla",.25,"pz",V],["Brodo vegetale",300,"ml",D],["Parmigiano",20,"g",L],["Burro",10,"g",L]]},
+{id:"polenta",cat:"primo",kcal:495,n:"Polenta con funghi e taleggio",min:40,note:"Polenta morbida, funghi trifolati con aglio e prezzemolo, taleggio a fette.",ing:[["Farina per polenta",80,"g",D],["Funghi misti",150,"g",V],["Taleggio",40,"g",L],["Aglio",.5,"spicchi",V],["Prezzemolo",.5,"ciuffi",V]]},
+{id:"farro",cat:"zuppa",kcal:340,n:"Zuppa di farro e funghi",min:40,note:"Farro perlato cotto nel brodo con funghi, carote e sedano.",ing:[["Farro perlato",70,"g",D],["Funghi misti",100,"g",V],["Carote",.5,"pz",V],["Sedano",.25,"pz",V],["Brodo vegetale",250,"ml",D]]},
+{id:"cavolonero",cat:"zuppa",kcal:370,n:"Zuppa di cavolo nero e fagioli",min:45,note:"Stile ribollita: verdure, fagioli, e pane raffermo che addensa la zuppa.",ing:[["Cavolo nero",100,"g",V],["Fagioli cannellini cotti",120,"g",D],["Patate",100,"g",V],["Carote",.5,"pz",V],["Pane raffermo",40,"g",D]]},
+{id:"minestra",cat:"zuppa",kcal:270,n:"Minestrone di verza e patate",min:45,note:"Verdure a pezzi, una crosta di parmigiano in cottura e olio a crudo.",ing:[["Verza",120,"g",V],["Patate",100,"g",V],["Carote",.5,"pz",V],["Sedano",.25,"pz",V],["Parmigiano",15,"g",L]]},
+{id:"polpette",cat:"secondo",kcal:400,n:"Polpette di lenticchie e patate",min:45,note:"Impasto di lenticchie e patate, pangrattato, cottura al forno.",ing:[["Lenticchie cotte",120,"g",D],["Patate",100,"g",V],["Uova",.5,"pz",L],["Pangrattato",20,"g",D]]},
+{id:"lenticchie",cat:"secondo",kcal:640,n:"Lenticchie con salsiccia",min:50,note:"Soffritto di carota e cipolla, salsiccia sbriciolata, lenticchie e passata.",ing:[["Lenticchie secche",80,"g",D],["Salsiccia",120,"g",C],["Carote",.5,"pz",V],["Cipolla",.25,"pz",V],["Passata di pomodoro",40,"g",D]]},
+{id:"tortazucca",cat:"secondo",kcal:530,n:"Torta salata di zucca e ricotta",min:60,note:"Sfoglia, crema di zucca arrosto e ricotta. Ottima anche fredda il giorno dopo.",ing:[["Pasta sfoglia",80,"g",D],["Zucca",150,"g",V],["Ricotta",80,"g",L],["Uova",.5,"pz",L],["Parmigiano",15,"g",L]]},
+{id:"involtini",cat:"secondo",kcal:460,n:"Involtini di verza con carne",min:60,note:"Foglie di verza sbollentate farcite con carne e parmigiano, cotte nel pomodoro.",ing:[["Verza",150,"g",V],["Carne macinata",120,"g",C],["Uova",.5,"pz",L],["Parmigiano",15,"g",L],["Passata di pomodoro",80,"g",D]]},
+{id:"pollo",cat:"secondo",kcal:560,n:"Pollo al forno con patate e rosmarino",min:75,note:"Cosce e patate in teglia a 200 °C, con aglio e rosmarino. Il forno lavora da solo.",ing:[["Cosce di pollo",1.5,"pz",C],["Patate",200,"g",V],["Rosmarino",1,"rametti",V],["Aglio",.5,"spicchi",V],["Olio extravergine",1,"cucchiai",D]]},
+{id:"lasagne",cat:"primo",kcal:720,n:"Lasagne alla zucca",min:90,note:"Sfoglie, crema di zucca, besciamella e mozzarella. Si prepara anche il giorno prima.",ing:[["Sfoglie per lasagne",70,"g",D],["Zucca",200,"g",V],["Latte",150,"ml",L],["Burro",15,"g",L],["Farina",15,"g",D],["Mozzarella",50,"g",L],["Parmigiano",15,"g",L]]},
+{id:"spezzatino",cat:"secondo",kcal:510,n:"Spezzatino di manzo con patate",min:120,note:"Cottura lenta con vino rosso e passata. Ideale per la domenica.",ing:[["Manzo per spezzatino",150,"g",C],["Patate",150,"g",V],["Carote",.5,"pz",V],["Cipolla",.5,"pz",V],["Vino rosso",50,"ml",D],["Passata di pomodoro",50,"g",D]]},
+{id:"brasato",cat:"secondo",kcal:540,n:"Brasato al vino rosso",min:180,note:"Cottura lentissima in pentola coperta con verdure e vino. Si fa la domenica.",ing:[["Manzo per brasato",170,"g",C],["Carote",.5,"pz",V],["Cipolla",.5,"pz",V],["Sedano",.25,"pz",V],["Vino rosso",100,"ml",D]]}
+];
+const byId=Object.fromEntries(R.map(r=>[r.id,r]));
+const DAYS=["Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato","Domenica"];
+const TIMES=[[15,"15 min"],[30,"30 min"],[45,"45 min"],[60,"1 ora"],[90,"1 h 30"],[120,"2 ore"],[180,"3 ore"]];
+const SEASONAL=["Zucca","Castagne","Cavolo nero","Cime di rapa","Finocchi","Funghi","Porri","Verza","Cavolfiore","Arance","Cachi","Melograno"];
+const TINTS=["--t1","--t2","--t3","--t4","--t5","--t6","--t7"];
+const LIGHT={p:480,c:400}, RICH={p:560,c:500};
+const CATS={p:["primo"],c:["secondo","zuppa"]};
+const CATNAME={primo:"Primo",secondo:"Secondo",zuppa:"Zuppa"};
+const PLUR={primo:"Primi",secondo:"Secondi",zuppa:"Zuppe"};
+const LABEL={p:"Pranzo",c:"Cena"};
+const mk=(tp,tc)=>({p:{t:tp,r:null,lock:false},c:{t:tc,r:null,lock:false}});
+const S={people:2,mode:"all",meals:"both",goal:null,share:{p:35,c:40},
+  days:[mk(30,45),mk(30,45),mk(30,45),mk(30,45),mk(30,45),mk(45,60),mk(90,120)],checked:{}};
+const $=id=>document.getElementById(id);
+const BYNAME=[...R].sort((a,b)=>a.n.localeCompare(b.n,"it"));
+
+const keys=()=>S.meals==="both"?["p","c"]:["c"];
+const active=()=>{const a=[];S.days.forEach((d,i)=>keys().forEach(k=>a.push([i,k,d[k]])));return a;};
+const budget=k=>S.goal?Math.round(S.goal*S.share[k]/100):null;
+const modeOk=(r,k)=>S.mode==="all"||(S.mode==="light"?r.kcal<=LIGHT[k]:r.kcal>=RICH[k]);
+
+function pick(i,k,used){
+  const m=S.days[i][k], t=m.t, cur=m.r, b=budget(k);
+  const cats=R.filter(r=>CATS[k].includes(r.cat));
+  let timeOk=cats.filter(r=>r.min<=t);
+  if(!timeOk.length){const mn=Math.min(...cats.map(r=>r.min));timeOk=cats.filter(r=>r.min===mn);}
+  const ok=r=>(!b||r.kcal<=b*1.1)&&modeOk(r,k);
+  const A=timeOk.filter(r=>r.id!==cur&&ok(r));
+  const tiers=[
+    A.filter(r=>r.min>=t*.5&&!used.includes(r.id)),
+    A.filter(r=>!used.includes(r.id)),
+    A,
+    timeOk.filter(r=>r.id!==cur&&modeOk(r,k)),
+    timeOk.filter(r=>r.id!==cur),
+    timeOk
+  ];
+  const pool=tiers.find(x=>x.length);
+  return pool[Math.floor(Math.random()*pool.length)].id;
+}
+function generate(){
+  const used=active().filter(([,,m])=>m.lock).map(([,,m])=>m.r);
+  active().forEach(([i,k,m])=>{
+    if(m.lock)return;
+    m.r=null;
+    m.r=pick(i,k,used);
+    used.push(m.r);
+  });
+}
+const SING={spicchi:"spicchio",rametti:"rametto",cucchiai:"cucchiaio",ciuffi:"ciuffo"};
+function fmt(q,u){
+  if(u==="g"){q=Math.max(10,Math.round(q/10)*10);return q>=1000?(q/1000).toFixed(1).replace(".",",")+" kg":q+" g";}
+  if(u==="ml"){q=Math.max(10,Math.round(q/10)*10);return q>=1000?(q/1000).toFixed(1).replace(".",",")+" l":q+" ml";}
+  const n=Math.max(1,Math.ceil(q-1e-9));
+  return n+" "+(n===1&&SING[u]?SING[u]:u);
+}
+function shopping(){
+  const m={};
+  active().forEach(([,,x])=>{byId[x.r].ing.forEach(([n,q,u,rep])=>{
+    const key=rep+"|"+n+"|"+u; m[key]=(m[key]||0)+q*S.people;});});
+  const groups={};
+  Object.entries(m).forEach(([k,q])=>{const [rep,n,u]=k.split("|");(groups[rep]=groups[rep]||[]).push({k,n,txt:fmt(q,u)});});
+  return [V,C,L,D].filter(r=>groups[r]).map(r=>({rep:r,items:groups[r].sort((a,b)=>a.n.localeCompare(b.n,"it"))}));
+}
+function mealHTML(i,k){
+  const m=S.days[i][k], r=byId[m.r], b=budget(k), id=i+":"+k;
+  let bl="";
+  if(b){const diff=r.kcal-b;
+    bl=`<p class="small"><b>${diff<=0?"✓ Nel budget":"↑ Sopra il budget di "+diff+" kcal"}</b> · budget del piatto ≈ ${b} kcal</p>`;}
+  const warn=r.min>m.t?`<p class="small"><b>Richiede ${r.min} min</b>, più del tempo che hai indicato.</p>`:"";
+  return `<div class="meal">
+    <div class="meal-top"><span class="meal-name">${LABEL[k]}</span>
+      <select data-time="${id}" aria-label="Tempo per ${LABEL[k].toLowerCase()} di ${DAYS[i]}">${TIMES.map(([v,l])=>`<option value="${v}"${v===m.t?" selected":""}>${l}</option>`).join("")}</select></div>
+    <div class="dish">${r.n}</div>
+    <div class="meta"><span class="pill">${CATNAME[r.cat]}</span><span class="pill">${r.min} min</span><span class="pill">≈ ${r.kcal} kcal</span>${m.lock?'<span class="pill">Scelto da te</span>':""}</div>
+    ${bl}${warn}
+    <p class="note">${r.note}</p>
+    <p class="small m">Kcal per persona, solo questo piatto. Per ${S.people}: ≈ ${(r.kcal*S.people).toLocaleString("it-IT")} kcal</p>
+    <div class="actions">
+      <button type="button" class="swap" data-swap="${id}">Cambia piatto</button>
+      <select data-pick="${id}" aria-label="Scegli tu il piatto per ${LABEL[k].toLowerCase()} di ${DAYS[i]}">
+        <option value="">Scegli tu il piatto…</option>
+        ${CATS[k].map(c=>`<optgroup label="${PLUR[c]}">${BYNAME.filter(x=>x.cat===c).map(x=>`<option value="${x.id}">${x.n} · ${x.min} min · ${x.kcal} kcal</option>`).join("")}</optgroup>`).join("")}
+      </select>
+    </div>
+  </div>`;
+}
+function render(){
+  $("people").textContent=S.people;
+  document.querySelectorAll("[data-mode]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===S.mode)));
+  document.querySelectorAll("[data-meals]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.meals===S.meals)));
+  $("field-p").hidden=S.meals!=="both";
+  $("days").innerHTML=S.days.map((d,i)=>{
+    const tot=keys().reduce((s,k)=>s+byId[d[k].r].kcal,0);
+    return `<article class="day" style="background:var(${TINTS[i]})">
+      <div class="day-top"><span class="day-name">${DAYS[i]}</span>
+        <span class="day-total">≈ ${tot} kcal${S.goal?" su "+S.goal:""}</span></div>
+      ${keys().map(k=>mealHTML(i,k)).join("")}
+    </article>`;}).join("");
+  const act=active();
+  const tot=act.reduce((s,[,,m])=>s+byId[m.r].min,0);
+  const shop=shopping();
+  const count=shop.reduce((s,g)=>s+g.items.length,0);
+  const avg=Math.round(act.reduce((s,[,,m])=>s+byId[m.r].kcal,0)/7/5)*5;
+  $("stats").textContent=`${Math.floor(tot/60)} h ${tot%60} min ai fornelli · ${count} voci in lista · media ≈ ${avg} kcal al giorno a persona (solo i piatti)`;
+  $("shop").innerHTML=shop.map(g=>{
+    const done=g.items.filter(x=>S.checked[x.k]).length;
+    return `<div class="dept"><h3>${g.rep}<span>${done}/${g.items.length}</span></h3><ul>${g.items.map(x=>
+      `<li class="${S.checked[x.k]?"done":""}"><label><input type="checkbox" data-k="${x.k}" ${S.checked[x.k]?"checked":""}><span class="n">${x.n}</span><span class="q">${x.txt}</span></label></li>`).join("")}</ul></div>`;}).join("");
+}
+function init(){
+  const mese=new Date().toLocaleDateString("it-IT",{month:"long"});
+  $("season").textContent="Di stagione a "+mese;
+  $("count").textContent=R.length;
+  $("share-p").value="35";$("share-c").value="40";
+  $("seasonal").innerHTML=SEASONAL.map((s,i)=>`<span class="chip" style="background:var(${TINTS[i%7]})">${s}</span>`).join("");
+  generate();render();
+}
+const parse=v=>{const [i,k]=v.split(":");return [+i,k];};
+document.addEventListener("click",e=>{
+  const t=e.target;
+  if(t.id==="plus"&&S.people<8){S.people++;render();}
+  else if(t.id==="minus"&&S.people>1){S.people--;render();}
+  else if(t.id==="regen"){S.checked={};generate();render();}
+  else if(t.dataset.mode){S.mode=t.dataset.mode;generate();render();}
+  else if(t.dataset.meals){S.meals=t.dataset.meals;generate();render();}
+  else if(t.dataset.swap!==undefined){
+    const [i,k]=parse(t.dataset.swap);const m=S.days[i][k];m.lock=false;
+    m.r=pick(i,k,active().map(([,,x])=>x.r));render();
+  } else if(t.id==="copy"){
+    const txt=shopping().map(g=>g.rep.toUpperCase()+"\n"+g.items.map(x=>"- "+x.n+": "+x.txt).join("\n")).join("\n\n");
+    const done=()=>{t.textContent="Lista copiata";setTimeout(()=>t.textContent="Copia la lista",1800);};
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,()=>{t.textContent="Copia non riuscita";});}
+    else{t.textContent="Copia non disponibile";}
+  }
+});
+document.addEventListener("change",e=>{
+  const t=e.target;
+  if(t.id==="goal"){
+    let v=parseInt(t.value,10);
+    if(!v||v<=0){S.goal=null;t.value="";}
+    else{v=Math.min(4000,Math.max(1200,v));S.goal=v;t.value=v;}
+    generate();render();
+  } else if(t.id==="share-p"||t.id==="share-c"){
+    S.share[t.id.slice(-1)]=+t.value;generate();render();
+  } else if(t.dataset.time!==undefined){
+    const [i,k]=parse(t.dataset.time);const m=S.days[i][k];m.t=+t.value;
+    if(!m.lock&&byId[m.r].min>m.t){m.r=null;m.r=pick(i,k,active().map(([,,x])=>x.r));}
+    render();
+  } else if(t.dataset.pick!==undefined){
+    if(t.value){const [i,k]=parse(t.dataset.pick);S.days[i][k].r=t.value;S.days[i][k].lock=true;}
+    render();
+  } else if(t.dataset.k){S.checked[t.dataset.k]=t.checked;render();}
+});
+init();
+</script>
